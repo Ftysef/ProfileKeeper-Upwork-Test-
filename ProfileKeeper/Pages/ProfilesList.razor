@@ -1,0 +1,53 @@
+﻿@page "/profileslist"
+
+<PageTitle>Profiles keeper</PageTitle>
+
+@using ProfileKeeper.Data
+@inject IProfileService ProfileService
+
+<h1>Profiles list</h1>
+
+@if (profiles == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Telephone Number</th>
+                <th>Image</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var profile in profiles)
+            {
+                <tr height="30px">
+                    <td>@profile.FirstName</td>
+                    <td>@profile.LastName</td>
+                    <td>@profile.TelephoneNumber</td>
+                    <td><img height="50" src="@profile.ImagePath" /></td>
+                    <td><button @onclick="() => Delete(profile.Id)" type="submit">Delete</button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private Profile[]? profiles;
+
+    protected override async Task OnInitializedAsync()
+    {
+        profiles = await ProfileService.GetProfilesAsync();
+    }
+
+    private async Task Delete(int id)
+    {
+        await ProfileService.DeleteProfileAsync(id);
+        await OnInitializedAsync();
+    }
+}

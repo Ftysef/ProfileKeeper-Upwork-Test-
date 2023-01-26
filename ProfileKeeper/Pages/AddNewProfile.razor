@@ -1,0 +1,70 @@
+﻿@page "/addnewprofile"
+
+<PageTitle>Profiles keeper</PageTitle>
+
+@using ProfileKeeper.Data
+@inject IProfileService ProfileService
+@inject NavigationManager NavigationManager
+
+<h1>Add New Profile</h1>
+
+<EditForm Model="@Profile" OnValidSubmit="@HandleSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <p>
+        <label>
+            First Name:
+            <InputText id="first-name" @bind-Value="Profile.FirstName" />
+        </label>
+    </p>
+    <p>
+        <label>
+            Last Name:
+            <InputText id="last-name" @bind-Value="Profile.LastName" />
+        </label>
+    </p>
+    <p>
+        <label>
+            Telephone Number:
+            <InputText id="telephoneNumber" @bind-Value="Profile.TelephoneNumber" />
+        </label>
+    </p>
+    <p>
+        <label>
+            Photo (128K maximum):
+            <InputFile OnChange="@LoadFile" />
+            <p style="color: red;" hidden="@MaxFileSizeAttentionHidden">File is bigger than 128K</p>
+            <img height="200" src="@Profile.ImagePath" />
+        </label>
+    </p>
+
+    <button type="submit">Submit</button>
+</EditForm>
+
+
+@code {
+    private Profile Profile = new();
+    private int MaxFileSize = 1024 * 128;
+    private bool MaxFileSizeAttentionHidden = true;
+
+    private async Task LoadFile(InputFileChangeEventArgs e)
+    {
+        MaxFileSizeAttentionHidden = true;
+        var file = e.File;
+        if (file.Size > MaxFileSize)
+        {
+            MaxFileSizeAttentionHidden = false;
+            return;
+        }
+        Profile.Image = new byte[file.Size];
+        using var stream = file.OpenReadStream(MaxFileSize);
+        await stream.ReadAsync(Profile.Image, 0, (int)file.Size);
+    }
+
+    private async Task HandleSubmit()
+    {
+        await ProfileService.AddProfileAsync(Profile);
+        NavigationManager.NavigateTo("ProfilesList");
+    }
+}
